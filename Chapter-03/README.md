@@ -171,28 +171,125 @@ Key Differences:
 - Synchronization with locks and shared variables.
 - Communication through shared memory.
 
-### Synchronization
+### Synchronization in SMS
 - Ensure that only one process accesses a shared resource at a time
 - Define rules for the order in which memory operations are visible to
   processes to maintain data consistency.
-- Implement mechanisms to manage concurrent access to shared data
-  structures without conflicts
 - Use techniques like deadlock detection and prevention to avoid
   processes getting stuck.
 
-### Shared Memory Systems
+### Distributed Memory Systems
 - Separate memory spaces.
 - Synchronization via message-passing.
 - Communication through messages.
 
-### Synchronization
-- Maintain the correct order of messages to ensure consistency and
-  prevent race conditions.
-- Coordinate access to shared resources across distributed nodes using
-  distributed lock managers.
-- Achieve agreement among distributed nodes even in the presence of failures
-  using consensus algorithms.
-- Ensure synchronized clocks across nodes for accurate timing and
-  coordination.
+### Synchronization in DMS
+> Memory Space: COCA rule
+
+C - Correct Order
+- Keep messages in sequence
+- Like sorting emails by time
+- Prevents message mix-ups
+
+O - Organized Access
+- Take turns using resources
+- Like sharing a printer
+- Prevents conflicts
+
+C - Consensus Agreement
+- Group decision making
+- Like team voting
+- Handles failures gracefully
+
+A - Accurate Time
+- Keep all clocks in sync
+- Like coordinating watches
+- Ensures timing accuracy
+
+## Peterson's Algorithm
+Peterson's algorithm is a way for two processes (or threads) to take 
+turns using a shared resource without interfering with each other. 
+It's a solution to the "critical section problem," where multiple 
+processes need to access shared data, but only one should do so at a 
+time to avoid conflicts.
+
+### How it works:
+
+1. **Process A wants to enter the critical section**:
+  - It sets `flag[0] = true` to indicate that it wants to enter.
+  - It sets `turn = 1`, meaning it's giving priority to Process B.
+
+2. **Process B wants to enter the critical section** at the same time:
+  - It sets `flag[1] = true` and `turn = 0` (giving priority to Process A).
+
+3. **Check who goes in**:
+  - Process A can only enter if either Process B doesn’t want to enter 
+(`flag[1] = false`) or it's Process A’s turn (`turn = 0`).
+  - Similarly, Process B can enter if Process A doesn't want to enter 
+(`flag[0] = false`) or it's Process B’s turn (`turn = 1`).
+
+4. **Take turns**: This setup ensures that the processes alternate access 
+if they both want to enter the critical section at the same time, avoiding 
+conflicts.
+
+5. **Exit critical section**: Once a process is done in the critical 
+section, it sets its flag to `false`, letting the other process have a 
+turn if needed.
+
+### Key points:
+- It ensures **mutual exclusion** (only one process can be in the 
+critical section at a time).
+- It avoids **deadlock** (both processes waiting forever).
+- It gives **progress** (each process will eventually get a chance).
 
 
+## De-Coupling using Selective Receives
+### What is Decoupling?
+Decoupling refers to the idea of separating different parts of a system 
+so that changes or interactions in one part don’t heavily impact another.
+
+### What is Selective Receives?
+Selective Receives is a feature in some message-passing systems 
+that allows a process to pick and choose which messages 
+it wants to handle from its mailbox, based on certain conditions.
+
+### How Selective Receives Enable Decoupling
+In a typical system:
+
+- The sending process doesn’t 
+wait for the receiver to handle the message. It sends and moves on.
+- The receiving process collects messages in its mailbox, and with selective 
+receive, it can prioritize which messages it handles based on its current 
+state or need.
+
+This setup helps decouple:
+
+- The sender from the receiver (the sender doesn't have to know when or how 
+the receiver will handle the message).
+- The receiver’s logic from the message order (the receiver can handle 
+high-priority messages first).
+
+## Message Passing Synchronization
+1. **One-way Synchronization:** A process sends a signal and continues its 
+work while expecting a response from another process. 
+2. **Mutual Exclusion for Shared Data:** Ensures that only one process can 
+write to shared data at a time. 
+
+Explanation:
+
+- In one-way synchronization, a process initiates an action without 
+waiting for an immediate response. This is like sending a message and 
+expecting a reply later.
+- Mutual exclusion for shared data ensures that access to critical data 
+is controlled to prevent concurrent writes, which could lead to data 
+corruption or inconsistencies.
+
+## How to overcome unreliable transport in Distributed System
+1. **Use Acknowledgments and Retransmissions:** Senders wait for
+acknowledgements from receivers and retransmit if needed.
+2. **Implement Sequence Numbers:** Assign unique sequence numbers to messages to maintain
+   order.
+3. **Utilize Checksums and Error Detection:** Include checksums to detect message corruption.
+4. **Set Timeouts and Heartbeats:** Use timeouts to monitor remote processes or nodes.
+5. **Detect and Deduplicate Duplicates:** Track received message IDs to avoid duplicates.
+6. **Apply Flow Control:** Prevent sender overload to avoid congestion.
