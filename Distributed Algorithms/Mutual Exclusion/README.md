@@ -157,3 +157,73 @@ Consider three processes \( P1 \), \( P2 \), and \( P3 \) in a distributed syste
 
 5. **\( P2 \) Enters the Critical Section**:
    - \( P2 \), now with permissions from \( P1 \) and \( P3 \), enters the critical section.
+
+## Comparision
+
+The **Suzuki-Kasami**, **Lamport's**, and **Ricart-Agrawala** algorithms are all designed for mutual exclusion in distributed systems, but they each use different mechanisms to manage access to a critical section. Here’s a comparison:
+
+---
+
+### 1. **Suzuki-Kasami Algorithm** (Token-based)
+
+- **Mechanism**: Token-based
+  - A unique token is shared among all processes. Only the process holding the token can enter the critical section.
+- **Operation**:
+  - When a process wants access, it sends a request to all other processes, and the token is passed to it if no other process is holding it.
+  - The token includes a queue to handle pending requests.
+- **Messages**: \( O(N) \) messages per request broadcast (1 message to each process)
+  - Fewer messages needed if contention is low since the token only needs to be passed.
+- **Advantages**:
+  - Low message complexity under low contention.
+  - No timestamp comparisons required.
+- **Disadvantages**:
+  - **Token loss** can disrupt the system, and additional mechanisms are required to regenerate the token.
+  - **Non-FIFO access**; access order is based on token availability, not request time.
+
+---
+
+### 2. **Lamport's Algorithm** (Logical Timestamps)
+
+- **Mechanism**: Timestamp-based
+  - Each request is assigned a logical timestamp, and requests are granted access based on these timestamps.
+- **Operation**:
+  - When a process requests access, it sends a timestamped request to all other processes.
+  - Each process replies if there are no conflicting requests or delays the reply until it has finished with the critical section.
+- **Messages**: \( O(N) \) messages per entry (N-1 request and N-1 reply messages)
+- **Advantages**:
+  - Ensures **total ordering** based on timestamps, so all processes agree on access order.
+  - Decentralized; no token is needed, and there's no single point of failure.
+- **Disadvantages**:
+  - **Higher message overhead** than token-based algorithms since every entry requires \( O(N) \) messages.
+  - Processes must wait for replies from all others, potentially increasing wait times.
+
+---
+
+### 3. **Ricart-Agrawala Algorithm** (Optimized Timestamp)
+
+- **Mechanism**: Permission-based, optimized timestamp
+  - Like Lamport’s, it uses logical timestamps but requires only **replies from contending processes**, reducing the number of messages.
+- **Operation**:
+  - When a process wants access, it sends a timestamped request to all other processes.
+  - Other processes reply if they’re not also requesting the critical section or have a lower-priority request.
+- **Messages**: \( O(N-1) \) messages per entry (1 request to each process, and a reply from each)
+  - Fewer messages than Lamport’s, as it doesn’t need an extra release message.
+- **Advantages**:
+  - **More efficient than Lamport's** algorithm with lower message overhead.
+  - Decentralized and fair; requests are ordered based on timestamps.
+- **Disadvantages**:
+  - **Delay in replies** if multiple processes request access simultaneously, increasing response times under high contention.
+
+---
+
+## Comparison
+
+| Algorithm           | Mechanism        | Messages per Access    | Ordering Type    | Key Advantage                    | Key Disadvantage           |
+| ------------------- | ---------------- | ---------------------- | ---------------- | -------------------------------- | -------------------------- |
+| **Suzuki-Kasami**   | Token-based      | \( O(N) \) (broadcast) | Non-FIFO         | Low messages in low contention   | Token loss disrupts system |
+| **Lamport’s**       | Timestamp-based  | \( O(2N-1) \)          | Total ordering   | Guaranteed access order          | High message overhead      |
+| **Ricart-Agrawala** | Permission-based | \( O(N-1) \)           | Partial ordering | Lower message count than Lamport | Delays under contention    |
+
+- **Use Suzuki-Kasami** when contention is low, and token loss can be managed.
+- **Use Lamport’s** for strict ordering of critical section access when fairness is essential.
+- **Use Ricart-Agrawala** for efficiency in scenarios with moderate contention and when reducing messages is important.
