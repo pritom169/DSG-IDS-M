@@ -115,3 +115,9 @@ Let's go one by one. It first step:
 3. Third iteration:
    - It stats with 50 and in the right it only sees 17 which is inactive, which makes 50 the highest process id.
    - total step 1.
+
+> Peterson's Ring Algorithm and Lehman's ring algorithm ensures that the process with the highest ID will be elected as the leader.
+
+> Due to the phased approach, it reduces the number of circulating messages compared to Lelann's ring algorithm.
+
+> The only downside it, Peterson's algorithm must know the total number of process there is to determine the end phase.
